@@ -1,0 +1,85 @@
+{{- range $key,$val := .Values.applications }}
+{{- if $val.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- /* if the appSuffix was not defined, use the key as name */}}
+  {{- /* if the appSuffix was defined, use the key as name if it has the suffix */}}
+  {{- /* otherwise, append the suffix to the key */}}
+  {{- if or (not $.Values.appSuffix) ($val.skipGlobalSuffix | default false) }}
+  name: {{ $key }}
+  {{- else }}
+  {{- if hasSuffix $.Values.appSuffix $key }}
+  name: {{ $key | quote }}
+  {{- else }}
+  name: {{ printf "%s-%s" $key $.Values.appSuffix | quote }}
+  {{- end }}
+  {{- end }}
+
+  {{- with (merge $val.labels $.Values.default.app.labels) }}
+  labels:
+    {{ toYaml . | indent 4 }}
+  {{- end }}
+
+  {{- with (merge $val.annotations $.Values.default.app.annotations) }}
+  annotations:
+    {{ toYaml . | indent 4 }}
+  {{- end }}
+spec:
+  {{- $destination := (merge $val.destinations $.Values.default.app.destinations) }}
+  destination:
+    {{- toYaml $destination | nindent 4 }}
+  project: {{ $val.project | default $.Values.default.app.project | required (printf "No project specified for %s" $key ) }}
+
+  {{- with $val.syncPolicy }}
+  syncPolicy:
+    {{- with .automated }}
+    automated:
+      selfHeal: {{ .selfHeal }}
+      prune: {{ .prune }}
+    {{- end }}
+    {{- with .retry }}
+    retry:
+      {{ toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .syncOptions }}
+    syncOptions:
+      {{ toYaml . | nindent 8 }}
+    {{- end }}
+  {{- end }}
+
+  {{- if not (gt (len $val.sources) 0) }}
+  source:
+    {{- if or (not $.Values.appSourceBasePath) ($val.ignoreBasePath | default false) }}
+    path: {{ $val.path | quote }}
+    {{- else }}
+    path: {{ printf "%s/%s" (trimSuffix "/" $.Values.appSourceBasePath) (trimPrefix "/" $val.path) | quote }}
+    {{- end }}
+    repoURL: {{ $val.repoURL | default $.Values.default.app.source.repoURL | required (printf "No source.repoURL specified for %s" $key ) }}
+    targetRevision: {{ $val.targetRevision | default $.Values.default.app.source.targetRevision | required (printf "No source.targetRevision specified for %s" $key ) }}
+  {{- end }}
+
+  {{- with $val.sources }}
+  {{- range $source := . }}
+    - repoURL: {{ .repoURL | required (printf "No sources.repoURL specified for repoURL") }}
+      targetRevision: {{ .targetRevision | required (printf "No sources.targetRevision specified for targetRevision") }}
+      ref: {{ .ref | default null }}
+      {{- with .helm }}
+      helm:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{/* check for appSourcebasePath */}}
+      {{- if or (not $.Values.appSourceBasePath) ($source.ignoreBasePath | default false) }}
+      path: {{ $source.path | default null }}
+      {{- else }}
+      path: {{ printf "%s/%s" (trimSuffix "/" $.Values.appSourceBasePath) (trimPrefix "/" $source.path) | quote }}
+      {{- end }}
+  {{- end }} {{/* end for range */}}
+  {{- end }} {{/* end for with $val.sources */}}
+
+  {{- with $val.extraFields }}
+  {{ tpl . | nindent 2 }}
+  {{- end }}
+{{- end }}
+{{- end }}
