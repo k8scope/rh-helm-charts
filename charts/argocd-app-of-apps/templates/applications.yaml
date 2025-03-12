@@ -17,20 +17,28 @@ metadata:
   {{- end }}
   {{- end }}
 
-  {{- with (merge $val.labels $.Values.default.app.labels) }}
+  {{- with $val.namespace }}
+  namespace: {{ . }}
+  {{- end }}
+
+  {{- with $val.labels }}
   labels:
     {{ toYaml . | indent 4 }}
   {{- end }}
 
-  {{- with (merge $val.annotations $.Values.default.app.annotations) }}
+  {{- with $val.annotations }}
   annotations:
     {{ toYaml . | indent 4 }}
   {{- end }}
+
+  {{- with $val.finalizers }}
+  finalizers:
+    {{ toYaml . | indent 4 }}
+  {{- end }}
 spec:
-  {{- $destination := (merge $val.destinations $.Values.default.app.destinations) }}
   destination:
-    {{- toYaml $destination | nindent 4 }}
-  project: {{ $val.project | default $.Values.default.app.project | required (printf "No project specified for %s" $key ) }}
+    {{- toYaml $val.destination | nindent 4 }}
+  project: {{ $val.project | required (printf "No project specified for %s" $key ) }}
 
   {{- with $val.syncPolicy }}
   syncPolicy:
@@ -56,22 +64,23 @@ spec:
     {{- else }}
     path: {{ printf "%s/%s" (trimSuffix "/" $.Values.appSourceBasePath) (trimPrefix "/" $val.path) | quote }}
     {{- end }}
-    repoURL: {{ $val.repoURL | default $.Values.default.app.source.repoURL | required (printf "No source.repoURL specified for %s" $key ) }}
-    targetRevision: {{ $val.targetRevision | default $.Values.default.app.source.targetRevision | required (printf "No source.targetRevision specified for %s" $key ) }}
+    repoURL: {{ $val.repoURL | required (printf "No source.repoURL specified for %s" $key ) }}
+    targetRevision: {{ $val.targetRevision | required (printf "No source.targetRevision specified for %s" $key ) }}
   {{- end }}
 
   {{- with $val.sources }}
   {{- range $source := . }}
+  sources:
     - repoURL: {{ .repoURL | required (printf "No sources.repoURL specified for repoURL") }}
       targetRevision: {{ .targetRevision | required (printf "No sources.targetRevision specified for targetRevision") }}
-      ref: {{ .ref | default null }}
+      ref: {{ .ref | default "null" }}
       {{- with .helm }}
       helm:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{/* check for appSourcebasePath */}}
       {{- if or (not $.Values.appSourceBasePath) ($source.ignoreBasePath | default false) }}
-      path: {{ $source.path | default null }}
+      path: {{ $source.path | default "null" }}
       {{- else }}
       path: {{ printf "%s/%s" (trimSuffix "/" $.Values.appSourceBasePath) (trimPrefix "/" $source.path) | quote }}
       {{- end }}

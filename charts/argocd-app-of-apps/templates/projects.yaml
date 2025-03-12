@@ -3,27 +3,46 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: {{ $key }}
-  namespace: {{ $val.namespace }}
-  {{- with $val.labels }}
-  labels:
-    {{ toYaml . | indent 4 }}
-  {{- end }}
+  name: my-project
+  namespace: {{ $val.namespace | quote }}
   {{- with $val.annotations }}
   annotations:
-    {{ toYaml . | indent 4 }}
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $val.labels }}
+  labels:
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $val.finalizers }}
+  finalizers:
+    {{ toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if $val.extraFields }}
-  {{ tpl $val.extraFields $ | trim | indent 2 }}
+  {{- with $val.description }}
+  description: {{ . | quote }}
   {{- end }}
-  description: {{ tpl $val.description $ }}
+  {{- with $val.sourceRepos }}
   sourceRepos:
-    {{ toYaml $val.sourceRepos | indent 4 }}
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $val.destinations }}
+  destinations:
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $val.clusterResourceWhitelist }}
+  clusterResourceWhitelist:
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $val.namespaceResourceBlacklist }}
+  roles:
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $val.namespaceResourceWhitelist }}
+  namespaceResourceWhitelist:
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
   {{- with $val.roles }}
   roles:
-    {{ toYaml . | indent 4 }}
+    {{ toYaml . | nindent 4 }}
   {{- end }}
-  destinations:
-    {{ toYaml $val.destinations | indent 4 }}
 {{- end }}
