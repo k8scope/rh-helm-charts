@@ -18,26 +18,26 @@ metadata:
   {{- end }}
   namespace: {{ $val.namespace | default $.Values.default.application.namespace }}
 
-  {{- with (merge ($val.labels | default (dict)) ($.Values.default.labels | default (dict))) }}
+  {{- with (merge ($val.labels | default (dict)) ($.Values.default.application.labels | default (dict))) }}
   labels:
-    {{- (merge ($val.labels | default (dict)) ($.Values.default.labels | default (dict))) | toYaml | nindent 4 }}
+    {{- (merge ($val.labels | default (dict)) ($.Values.default.application.labels | default (dict))) | toYaml | nindent 4 }}
   {{- end }}
 
-  {{- with (merge ($val.annotations | default (dict)) ($.Values.default.annotations | default (dict))) }}
+  {{- with (merge ($val.annotations | default (dict)) ($.Values.default.application.annotations | default (dict))) }}
   annotations:
     {{- . | toYaml | nindent 4 }}
   {{- end }}
 
-  {{- with (concat ($val.finalizers | default (list)) ($.Values.default.finalizers | default (list))) }}
+  {{- with (concat ($val.finalizers | default (list)) ($.Values.default.application.finalizers | default (list))) }}
   finalizers:
     {{- . | toYaml | nindent 4 }}
   {{- end }}
 spec:
   destination:
-    {{- toYaml $val.destination | nindent 4 }}
-  project: {{ $val.project | required (printf "No project specified for %s" $key ) }}
+    {{- merge $val.destination | toYaml | nindent 4 }}
+  project: {{ $val.project | default $.Values.default.application.project | required (printf "No project specified for %s" $key ) }}
 
-  {{- with $val.syncPolicy }}
+  {{- with (merge ($val.syncPolicy | default (dict)) ($.Values.default.application.syncPolicy | default (dict))) }}
   syncPolicy:
     {{- with .automated }}
     automated:
@@ -55,36 +55,66 @@ spec:
   {{- end }}
 
   {{- if not (gt (len $val.sources) 0) }}
+  {{- with (merge $val.source $.Values.default.application.source) }}
   source:
-    {{- if or (not $.Values.appSourceBasePath) ($val.ignoreBasePath | default false) }}
-    path: {{ $val.path | quote }}
+    {{- if or (not $.Values.appSourceBasePath) (.ignoreBasePath | default false) }}
+    path: {{ .path | default $.Values.default.application.source.path | quote }}
     {{- else }}
-    path: {{ printf "%s/%s" (trimSuffix "/" $.Values.appSourceBasePath) (trimPrefix "/" $val.path) | quote }}
+    path: {{ printf "%s/%s" (trimSuffix "/" $.Values.appSourceBasePath) (trimPrefix "/" .path) | quote }}
     {{- end }}
-    repoURL: {{ $val.repoURL | required (printf "No source.repoURL specified for %s" $key ) }}
-    targetRevision: {{ $val.targetRevision | required (printf "No source.targetRevision specified for %s" $key ) }}
+    repoURL: {{ .repoURL | required (printf "No source.repoURL specified for %s" $key ) }}
+    targetRevision: {{ .targetRevision | required (printf "No source.targetRevision specified for %s" $key ) }}
+    {{- with .helm }}
+    helm:
+      {{- with .releaseName }}
+      releaseName: {{ . }}
+      {{- end }}
+
+      {{- with .ignoreMissingValueFiles }}
+      ignoreMissingValueFiles: {{ . }}
+      {{- end }}
+
+      {{- with .valueFiles }}
+      valueFiles:
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with .parameters }}
+      parameters:
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with .valuesObject }}
+      valuesObject:
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with .values }}
+      values: |
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
   {{- end }}
 
   {{- with $val.sources }}
-  {{- range $source := . }}
   sources:
+    {{- range $ := . }}
     - repoURL: {{ .repoURL | required (printf "No sources.repoURL specified for repoURL") }}
       targetRevision: {{ .targetRevision | required (printf "No sources.targetRevision specified for targetRevision") }}
       ref: {{ .ref | default "null" }}
+      {{- /* check for appSourcebasePath */}}
+      {{- if or (not $.Values.appSourceBasePath) ($source.ignoreBasePath | default false) }}
+      path: {{ $source.path | quote }}
+      {{- else }}
+      path: {{ printf "%s/%s" (trimSuffix "/" $.Values.appSourceBasePath) (trimPrefix "/" $source.path) | quote }}
+      {{- end }}
       {{- with .helm }}
       helm:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{/* check for appSourcebasePath */}}
-      {{- if or (not $.Values.appSourceBasePath) ($source.ignoreBasePath | default false) }}
-      path: {{ $source.path | default "null" }}
-      {{- else }}
-      path: {{ printf "%s/%s" (trimSuffix "/" $.Values.appSourceBasePath) (trimPrefix "/" $source.path) | quote }}
-      {{- end }}
-  {{- end }} {{/* end for range */}}
+    {{- end }} {{/* end for range */}}
   {{- end }} {{/* end for with $val.sources */}}
 
-  {{- with $val.extraFields }}
+  {{/* in case the user want to define a field that is not populated above, the user can use the extraFields option to add additional keys here */}}
+  {{- with (merge ($val.extraFields | default (dict)) ($.Values.default.application.extraFields | default (dict))) }}
   {{ tpl . | nindent 2 }}
   {{- end }}
 {{- end }}

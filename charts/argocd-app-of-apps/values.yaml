@@ -13,7 +13,7 @@ appSuffix: null
 # appSourceBasePath is the base path for the application source
 # This will be applied to all applications in the app-of-apps, unless the application has source.ignoreBasePath set to true
 # If source.ignoreBasePath is set to false (default), the source.path will be appended to the appSourceBasePath
-appSourceBasePath: null
+appSourceBasePath: /overlays
 
 # -- Default values for all applications
 default:
@@ -29,39 +29,49 @@ default:
       server: https://kubernetes.default.svc
       namespace: "openshift-gitops"
     project: "default"
-    # applications.example.syncPolicy -- syncPolicy is the sync policy for the application
+    # default.application.syncPolicy -- syncPolicy is the sync policy for the application
     syncPolicy:
-      # applications.example.syncPolicy.automated -- automated is the automated sync policy for the application
+      # default.application.syncPolicy -- automated is the automated sync policy for the application
       automated:
-        # applications.example.syncPolicy.automated.selfHeal -- selfHeal is a flag to enable or disable self-healing
+        # default.application.syncPolicy.selfHeal -- selfHeal is a flag to enable or disable self-healing
         selfHeal: true
-        # applications.example.syncPolicy.automated.prune -- prune is a flag to enable or disable pruning
+        # default.application.syncPolicy -- prune is a flag to enable or disable pruning
         prune: true
-      # applications.example.syncPolicy.retry -- retry is the retry strategy for the application
+      # default.application.retry -- retry is the retry strategy for the application
       retry: {}
-      # applications.example.syncPolicy.syncOptions -- syncOptions is a list of sync options
+      # default.application.syncOptions -- syncOptions is a list of sync options
       syncOptions: []
-    # applications.example.source -- source is the source of the application
+    # default.application.source -- source is the source of the application
     # only one of application.example.source or application.example.sources can be set
     source:
-      # applications.example.source.repoURL -- repoURL is the URL to the application source repository
+      # default.application.source.repoURL -- repoURL is the URL to the application source repository
       repoURL: https://github.com/my-org/my-repo  # path is missing so no manifests are generated
-      # applications.example.source.targetRevision -- targetRevision is the revision of the application source repository
+      # default.application.source.targetRevision -- targetRevision is the revision of the application source repository
       targetRevision: master
-      # applications.example.source.ignoreBasePath -- ignoreBasePath is a flag to ignore the base path set in appSourceBasePath
+      # default.application.source.ignoreBasePath -- ignoreBasePath is a flag to ignore the base path set in appSourceBasePath
       ignoreBasePath: false
-      # applications.example.source.path -- path is the path to the application source
-      path: ""
-      # applications.example.source.helm -- helm is the Helm specific configuration
+      # default.application.source.path -- path is the path to the application source
+      path: "/"
+      # default.application.source -- helm is the Helm specific configuration
       # For more information about the Helm configuration, see https://argo-cd.readthedocs.io/en/stable/user-guide/helm/#helm
       helm:
-        # applications.example.source.helm.releaseName -- releaseName is the name of the Helm release
+        # default.application.source.helm.releaseName -- releaseName is the name of the Helm release
         releaseName: ""
-        # applications.example.source.helm.ignoreMissingValueFiles -- ignoreMissingValueFiles is a flag to ignore missing value files
+        # default.application.source.helm.ignoreMissingValueFiles -- ignoreMissingValueFiles is a flag to ignore missing value files
         ignoreMissingValueFiles: false
-        # applications.example.source.helm.valueFiles -- valueFiles is a list of Helm value files to be used (`$ref` can be used to reference a different source)
+        # default.application.source.helm.valueFiles -- valueFiles is a list of Helm value files to be used (`$ref` can be used to reference a different source)
         valueFiles:
           - $myRepo/values.yaml
+        # default.application.source.helm.parameters -- parameters is a list of Helm parameters
+        parameters: []
+          # - name: "myParam"
+          #   value: "myValue"
+        # default.application.source.helm.valuesObject -- valuesObject is a map of Helm values
+        valuesObject: {}
+          # myKey: myValue
+        # default.application.source.helm.values -- values is a map of Helm values
+        values:
+          # myKey: myValue
 
 # -- Define a map of projects and their configurations
 projects:
@@ -158,6 +168,13 @@ applications:
         # applications.example.source.helm.valueFiles -- valueFiles is a list of Helm value files to be used (`$ref` can be used to reference a different source)
         valueFiles:
           - $myRepo/values.yaml
+        parameters: []
+          # - name: "myParam"
+          #   value: "myValue"
+        valuesObject: {}
+          # myKey: myValue
+        values:
+          # myKey: myValue
     # applications.example.sources -- sources is a list of sources for the application
     # only one of application.example.source or application.example.sources can be set
     sources:
