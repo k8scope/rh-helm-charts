@@ -1,0 +1,14 @@
+---
+apiVersion: compliance.openshift.io/v1alpha1
+kind: ScanSettingBinding
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+  name: {{ .Release.Name }}
+  namespace: openshift-compliance
+profiles:
+  {{- .Values.profiles | toYaml | nindent 4 }}
+settingsRef:
+  name: default
+  kind: ScanSetting
+  apiGroup: compliance.openshift.io/v1alpha1

@@ -1,0 +1,12 @@
+{{ if .Values.customScanSetting.enabled }}
+apiVersion: compliance.openshift.io/v1alpha1
+debug: {{ .Values.customScanSetting.debug }}
+kind: ScanSetting
+metadata:
+  name: {{ .Values.customScanSetting.name }}
+roles:
+  {{- .Values.customScanSetting.roles | toYaml | nindent 2 }}
+scanTolerations:
+  {{- .Values.customScanSetting.tolerations | toYaml | nindent 2 }}
+schedule: {{ .Values.customScanSetting.schedule }}
+{{- end }}

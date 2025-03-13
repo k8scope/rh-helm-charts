@@ -1,0 +1,6 @@
+# Default values for compliance-operator.
+---
+# -- Set the installPlan. Either Manual or Automatic
+installPlan: Automatic
+# -- Operator Channel
+channel: Stable

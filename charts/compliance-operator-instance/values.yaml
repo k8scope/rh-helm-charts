@@ -1,0 +1,26 @@
+# Default values for compliance-operator-instance.
+# -- Select the Compliance Profiles to run
+profiles:
+  - name: ocp4-cis-node
+    kind: Profile
+    apiGroup: compliance.openshift.io/v1alpha1
+  - name: ocp4-cis
+    kind: Profile
+    apiGroup: compliance.openshift.io/v1alpha1
+
+# -- The ScanSetting to use
+settingName: default
+
+# -- Define a custom scan setting
+customScanSetting:
+  enabled: false
+  name: moderate
+  debug: false
+  roles:
+    - worker
+    - master
+  tolerations:
+    - effect: Noschedule
+      key: node-role.kubernetes.io/master
+      oprerator: exist
+  schedule: '0 1 * * *'
