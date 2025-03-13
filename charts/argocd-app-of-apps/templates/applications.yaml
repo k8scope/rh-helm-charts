@@ -1,5 +1,5 @@
 {{- range $key,$val := .Values.applications }}
-{{- if $val.enabled }}
+{{- if hasKey $val "enabled" | required (printf "An enabled key for application %s is required" $key) }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -16,24 +16,21 @@ metadata:
   name: {{ printf "%s-%s" $key $.Values.appSuffix | quote }}
   {{- end }}
   {{- end }}
+  namespace: {{ $val.namespace | default $.Values.default.application.namespace }}
 
-  {{- with $val.namespace }}
-  namespace: {{ . }}
-  {{- end }}
-
-  {{- with $val.labels }}
+  {{- with (merge ($val.labels | default (dict)) ($.Values.default.labels | default (dict))) }}
   labels:
-    {{ toYaml . | indent 4 }}
+    {{- (merge ($val.labels | default (dict)) ($.Values.default.labels | default (dict))) | toYaml | nindent 4 }}
   {{- end }}
 
-  {{- with $val.annotations }}
+  {{- with (merge ($val.annotations | default (dict)) ($.Values.default.annotations | default (dict))) }}
   annotations:
-    {{ toYaml . | indent 4 }}
+    {{- . | toYaml | nindent 4 }}
   {{- end }}
 
-  {{- with $val.finalizers }}
+  {{- with (concat ($val.finalizers | default (list)) ($.Values.default.finalizers | default (list))) }}
   finalizers:
-    {{ toYaml . | indent 4 }}
+    {{- . | toYaml | nindent 4 }}
   {{- end }}
 spec:
   destination:

@@ -21,25 +21,47 @@ default:
   # -- We expect the same structure as for the applications below
   application:
     enabled: false
-    annotations:
-      argocd.argoproj.io/sync-options: ServerSideApply=true
+    namespace: "openshift-gitops"
+    labels: {}
+    annotations: {}
+    finalizers: []
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: "openshift-gitops"
+    project: "default"
+    # applications.example.syncPolicy -- syncPolicy is the sync policy for the application
+    syncPolicy:
+      # applications.example.syncPolicy.automated -- automated is the automated sync policy for the application
+      automated:
+        # applications.example.syncPolicy.automated.selfHeal -- selfHeal is a flag to enable or disable self-healing
+        selfHeal: true
+        # applications.example.syncPolicy.automated.prune -- prune is a flag to enable or disable pruning
+        prune: true
+      # applications.example.syncPolicy.retry -- retry is the retry strategy for the application
+      retry: {}
+      # applications.example.syncPolicy.syncOptions -- syncOptions is a list of sync options
+      syncOptions: []
+    # applications.example.source -- source is the source of the application
+    # only one of application.example.source or application.example.sources can be set
     source:
-      # -- Allows to ignore the base path set in appSourceBasePath
+      # applications.example.source.repoURL -- repoURL is the URL to the application source repository
+      repoURL: https://github.com/my-org/my-repo  # path is missing so no manifests are generated
+      # applications.example.source.targetRevision -- targetRevision is the revision of the application source repository
+      targetRevision: master
+      # applications.example.source.ignoreBasePath -- ignoreBasePath is a flag to ignore the base path set in appSourceBasePath
       ignoreBasePath: false
-      # -- The path to the application source
-      # This will be appended to the appSourceBasePath if ignoreBasePath is false
-      # If ignoreBasePath is true, this will be the full path to the application source
+      # applications.example.source.path -- path is the path to the application source
       path: ""
-      # -- The URL to the application source repository (e.g. https://github.com/example/example.git)
-      repoURL: ""
-      # -- The revision of the application source repository
-      # This can be a branch, tag, or commit SHA
-      targetRevision: HEAD
-    sources:
-      - repoURL: ""
-        targetRevision: HEAD
-        ref: ""
-
+      # applications.example.source.helm -- helm is the Helm specific configuration
+      # For more information about the Helm configuration, see https://argo-cd.readthedocs.io/en/stable/user-guide/helm/#helm
+      helm:
+        # applications.example.source.helm.releaseName -- releaseName is the name of the Helm release
+        releaseName: ""
+        # applications.example.source.helm.ignoreMissingValueFiles -- ignoreMissingValueFiles is a flag to ignore missing value files
+        ignoreMissingValueFiles: false
+        # applications.example.source.helm.valueFiles -- valueFiles is a list of Helm value files to be used (`$ref` can be used to reference a different source)
+        valueFiles:
+          - $myRepo/values.yaml
 
 # -- Define a map of projects and their configurations
 projects:
@@ -141,24 +163,29 @@ applications:
     sources:
     -
       # applications.example.sources[0].repoURL -- repoURL is the URL to the application source repository
-      repoURL: https://github.com/my-org/my-repo
+      repoURL: https://ghcr.io/k8scope/rh-helm-charts/argocd-app-of-apps
       # applications.example.sources[0].targetRevision -- targetRevision is the revision of the application source repository
-      targetRevision: master
-      # applications.example.sources[0].ignoreBasePath -- ignoreBasePath is a flag to ignore the base path set in appSourceBasePath
-      ignoreBasePath: false
-      # applications.example.sources[0].path -- path is the path to the application source
-      path: ""
-      # applications.example.sources[0].ref -- ref is the reference name to be used in the application (only used when Helm is used with different repositories for chart and values)
-      ref: myRepo
+      targetRevision: "0.1.0"
       # applications.example.sources[0].helm -- helm is the Helm specific configuration
       # For more information about the Helm configuration, see https://argo-cd.readthedocs.io/en/stable/user-guide/helm/#helm
       helm:
         # applications.example.sources[0].helm.releaseName -- releaseName is the name of the Helm release
-        releaseName: ""
+        releaseName: "app-of-apps"
         # applications.example.sources[0].helm.ignoreMissingValueFiles -- ignoreMissingValueFiles is a flag to ignore missing value files
         ignoreMissingValueFiles: false
         # applications.example.sources[0].helm.valueFiles -- valueFiles is a list of Helm value files to be used (`$ref` can be used to reference a different source)
         valueFiles:
           - $myRepo/values.yaml
+    -
+      # applications.example.sources[1].repoURL -- repoURL is the URL to the application source repository
+      repoURL: https://github.com/k8scope/rh-helm-charts
+      # applications.example.sources[1].targetRevision -- targetRevision is the revision of the application source repository
+      targetRevision: HEAD
+      # applications.example.sources[1].ignoreBasePath -- ignoreBasePath is a flag to ignore the base path set in appSourceBasePath
+      ignoreBasePath: false
+      # applications.example.sources[1].path -- path is the path to the application source
+      path: "app-of-apps"
+      # applications.example.sources[1].ref -- ref is the reference name to be used in the application (only used when Helm is used with different repositories for chart and values)
+      ref: myRepo
     # applications.example.extraFields -- extraFields allows for adding additional fields to the application, that are not mapped
     extraFields: {}
