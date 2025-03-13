@@ -1,0 +1,8 @@
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: {{ .Release.Namespace | default "openshift-compliance" }}
+spec:
+  targetNamespaces:
+    - {{ .Release.Namespace | default "openshift-compliance" }}
