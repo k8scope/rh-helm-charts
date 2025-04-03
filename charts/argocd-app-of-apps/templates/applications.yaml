@@ -34,7 +34,7 @@ metadata:
   {{- end }}
 spec:
   destination:
-    {{- toYaml $val.destination | nindent 4 }}
+    {{- $val.destination | default $.Values.default.application.destination | toYaml | nindent 4 }}
   project: {{ $val.project | required (printf "No project specified for %s" $key ) }}
 
   {{- with $val.syncPolicy }}
