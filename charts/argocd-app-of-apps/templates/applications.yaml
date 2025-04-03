@@ -66,8 +66,8 @@ spec:
   {{- end }}
 
   {{- with $val.sources }}
-  {{- range $source := . }}
   sources:
+  {{- range $source := . }}
     - repoURL: {{ .repoURL | required (printf "No sources.repoURL specified for repoURL") }}
       targetRevision: {{ .targetRevision | required (printf "No sources.targetRevision specified for targetRevision") }}
       ref: {{ .ref | default "null" }}
