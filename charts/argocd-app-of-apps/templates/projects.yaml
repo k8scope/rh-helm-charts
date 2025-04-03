@@ -3,7 +3,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: my-project
+  name: {{ $key }}
   namespace: {{ $val.namespace | quote }}
   {{- with $val.annotations }}
   annotations:
