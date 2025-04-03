@@ -70,6 +70,7 @@ spec:
   {{- range $source := . }}
     - repoURL: {{ .repoURL | required (printf "No sources.repoURL specified for repoURL") }}
       targetRevision: {{ .targetRevision | required (printf "No sources.targetRevision specified for targetRevision") }}
+      chart: {{ .chart | default "null" }}
       ref: {{ .ref | default "null" }}
       {{- with .helm }}
       helm:

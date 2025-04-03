@@ -148,6 +148,8 @@ applications:
       ignoreBasePath: false
       # applications.example.source.path -- path is the path to the application source
       path: ""
+      # applications.example.source.chart -- chart is the name of the chart to be used
+      chart: null
       # applications.example.source.helm -- helm is the Helm specific configuration
       # For more information about the Helm configuration, see https://argo-cd.readthedocs.io/en/stable/user-guide/helm/#helm
       helm:
