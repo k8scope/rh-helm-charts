@@ -1,0 +1,43 @@
+projects:
+  &prj-cluster-apps cluster-config:
+    namespace: &ns-gitops openshift-gitops
+    additionalLabels: {}
+    additionalAnnotations: {}
+    permitOnlyProjectScopedClusters: false
+    description: This project is for cluster-wide applications
+    sourceRepos:
+      - https://github.com/k8scope/rh-gitops-helm.git
+    destinations:
+      - namespace: "*"
+        server: https://kubernetes.default.svc
+    clusterResourceWhitelist: []
+    clusterResourceBlacklist: []
+    namespaceResourceBlacklist: []
+    namespaceResourceWhitelist: []
+    orphanedResources: {}
+    roles: []
+    syncWindows: []
+    signatureKeys: []
+    sourceNamespaces: []
+
+applications:
+  monitoring:
+    enabled: true
+    namespace: *ns-gitops
+    project: *prj-cluster-apps
+    sources:
+    -
+      repoURL: https://prometheus-community.github.io/helm-charts
+      targetRevision: 5.30.1
+      helm:
+        releaseName: monitoring
+        ignoreMissingValueFiles: true
+        valueFiles:
+          - $values/datacenters/monitoring.yaml
+          - $values/datacenters/dc01/monitoring.yaml
+          - $values/datacenters/dc01/production/monitoring.yaml
+          - $values/datacenters/dc01/production/prd01/monitoring.yaml
+    -
+      repoURL: https://github.com/k8scope/rh-gitops-helm.git
+      targetRevision: HEAD
+      ref: values
